@@ -4,13 +4,16 @@ import amirka.u5w3d1.entities.Employee;
 import amirka.u5w3d1.exceptions.UnauthorizedEx;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 
+@Component
 public class JWTools {
     private final String secret;
 
-    public JWTools(String secret) {
+    public JWTools(@Value("${jwt.secret}") String secret) {
         this.secret = secret;
     }
 

@@ -45,6 +45,6 @@ public class TokenFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(HttpServletRequest req) throws ServletException {
 
         // Skips this filter for the login endpoint because users don't have a token yet.
-        return new AntPathMatcher().match("/auth/login", req.getServletPath());
+        return new AntPathMatcher().match("/auth/**", req.getServletPath());
     }
 }
