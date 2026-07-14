@@ -1,7 +1,6 @@
 package amirka.u5w3d1.services;
 
 import amirka.u5w3d1.entities.Employee;
-import amirka.u5w3d1.enums.Role;
 import amirka.u5w3d1.exceptions.BadRequestEx;
 import amirka.u5w3d1.exceptions.FileUploadEx;
 import amirka.u5w3d1.exceptions.NotFoundEx;
@@ -45,7 +44,6 @@ public class EmployeeService {
 
         Employee newEmployee = new Employee(employeeDTO.username(), employeeDTO.name(), employeeDTO.surname(),
                 employeeDTO.email(), bCrypt.encode(employeeDTO.password()));
-        newEmployee.setRole(Role.USER);
         return employeeRepository.save(newEmployee);
     }
 

@@ -41,6 +41,7 @@ public class Employee implements UserDetails {
         this.email = email;
         this.avatar = "https://ui-avatars.com/api/?name=" + name + "+" + surname;
         this.password = password;
+        this.role = Role.USER;
     }
 
     public Employee() {
