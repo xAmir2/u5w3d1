@@ -1,22 +1,30 @@
 package amirka.u5w3d1.security;
 
+import amirka.u5w3d1.entities.Employee;
 import amirka.u5w3d1.exceptions.UnauthorizedEx;
+import amirka.u5w3d1.services.EmployeeService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.UUID;
 
 @Component
 public class TokenFilter extends OncePerRequestFilter {
     private final JWTools jwTools;
+    private final EmployeeService employeeService;
 
-    public TokenFilter(JWTools jwTools) {
+    public TokenFilter(JWTools jwTools, EmployeeService employeeService) {
         this.jwTools = jwTools;
+        this.employeeService = employeeService;
     }
 
     @Override
@@ -36,6 +44,16 @@ public class TokenFilter extends OncePerRequestFilter {
 
         // Verifies that the JWT is valid (correct signature, not expired, not modified).
         this.jwTools.tokenVerification(accessToken);
+
+        UUID employeeId = jwTools.extractIdFromToken(accessToken);
+        Employee currentEmployee = this.employeeService.findById(employeeId);
+
+        //associo un utente al security context
+        Authentication authentication = new UsernamePasswordAuthenticationToken(currentEmployee, null,
+                currentEmployee.getAuthorities());
+        //security context
+        SecurityContextHolder.getContext()
+                .setAuthentication(authentication);
 
         // If the token is valid, continues the request to the next filter/controller.
         filter.doFilter(req, resp);

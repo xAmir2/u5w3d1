@@ -8,6 +8,7 @@ import amirka.u5w3d1.payloads.TripStatusUpdateDTO;
 import amirka.u5w3d1.services.TripService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,7 @@ public class TripController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAuthority('ADMIN')")
     public TripResponseDTO saveTrip(@RequestBody @Validated TripDTO body, BindingResult validResult) {
         if (validResult.hasErrors()) {
             List<String> errorsList = validResult.getFieldErrors()
@@ -39,6 +41,7 @@ public class TripController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public Page<Trip> getTrips(@RequestParam(defaultValue = "0") int page,
                                @RequestParam(defaultValue = "10") int size,
                                @RequestParam(defaultValue = "destination") String orderBy) {
@@ -46,11 +49,14 @@ public class TripController {
     }
 
     @GetMapping("/{tripId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public Trip getById(@PathVariable UUID tripId) {
         return tripService.findById(tripId);
     }
 
     @PutMapping("/{tripId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+
     public Trip updateTrip(@PathVariable UUID tripId, @RequestBody @Validated TripDTO body, BindingResult validResult) {
         if (validResult.hasErrors()) {
             List<String> errorsList = validResult.getFieldErrors()
@@ -63,6 +69,8 @@ public class TripController {
     }
 
     @PatchMapping("/{tripId}/status")
+    @PreAuthorize("hasAuthority('ADMIN')")
+
     public Trip updateStatus(@PathVariable UUID tripId, @RequestBody @Validated TripStatusUpdateDTO body, BindingResult validResult) {
         if (validResult.hasErrors()) {
             List<String> errorsList = validResult.getFieldErrors()
@@ -75,8 +83,10 @@ public class TripController {
     }
 
     @DeleteMapping("/{tripId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void deleteAuthor(@PathVariable UUID tripId) {
+    public void delete(@PathVariable UUID tripId) {
 
         tripService.findByIdAndDelete(tripId);
     }

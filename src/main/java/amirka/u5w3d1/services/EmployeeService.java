@@ -1,9 +1,11 @@
 package amirka.u5w3d1.services;
 
 import amirka.u5w3d1.entities.Employee;
+import amirka.u5w3d1.enums.Role;
 import amirka.u5w3d1.exceptions.BadRequestEx;
 import amirka.u5w3d1.exceptions.FileUploadEx;
 import amirka.u5w3d1.exceptions.NotFoundEx;
+import amirka.u5w3d1.payloads.EmployeeChangePasswordDTO;
 import amirka.u5w3d1.payloads.EmployeeDTO;
 import amirka.u5w3d1.repositories.BookingRepository;
 import amirka.u5w3d1.repositories.EmployeeRepository;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,11 +29,13 @@ public class EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final BookingRepository bookingRepository;
     private final Cloudinary fileUploader;
+    private PasswordEncoder bCrypt;
 
-    public EmployeeService(EmployeeRepository employeeRepository, BookingRepository bookingRepository, Cloudinary fileUploader) {
+    public EmployeeService(EmployeeRepository employeeRepository, BookingRepository bookingRepository, Cloudinary fileUploader, PasswordEncoder bCrypt) {
         this.employeeRepository = employeeRepository;
         this.bookingRepository = bookingRepository;
         this.fileUploader = fileUploader;
+        this.bCrypt = bCrypt;
     }
 
     public Employee save(EmployeeDTO employeeDTO) {
@@ -39,7 +44,8 @@ public class EmployeeService {
         }
 
         Employee newEmployee = new Employee(employeeDTO.username(), employeeDTO.name(), employeeDTO.surname(),
-                employeeDTO.email(), employeeDTO.password());
+                employeeDTO.email(), bCrypt.encode(employeeDTO.password()));
+        newEmployee.setRole(Role.USER);
         return employeeRepository.save(newEmployee);
     }
 
@@ -131,5 +137,17 @@ public class EmployeeService {
     public Employee findByEmail(String email) {
         return this.employeeRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundEx("Employee with the email: " + email + " was not found!"));
+    }
+
+    public void updatePassword(UUID userId, EmployeeChangePasswordDTO payload) {
+        Employee found = this.findById(userId);
+
+        if (!bCrypt.matches(payload.oldPassword(), found.getPassword())) {
+            throw new BadRequestEx("Password do not match!");
+        }
+
+        found.setPassword(bCrypt.encode(payload.newPassword()));
+
+        this.employeeRepository.save(found);
     }
 }

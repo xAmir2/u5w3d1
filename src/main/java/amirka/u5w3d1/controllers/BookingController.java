@@ -9,6 +9,7 @@ import amirka.u5w3d1.services.EmployeeService;
 import amirka.u5w3d1.services.TripService;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,8 @@ public class BookingController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+
     public BookingResponseDTO saveBooking(@RequestBody @Validated BookingDTO body, BindingResult validResult) {
         if (validResult.hasErrors()) {
             List<String> errorsList = validResult.getFieldErrors()
@@ -45,6 +48,7 @@ public class BookingController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Page<Booking> getTrips(@RequestParam(defaultValue = "0") int page,
                                   @RequestParam(defaultValue = "10") int size,
                                   @RequestParam(defaultValue = "requestDate") String orderBy) {
@@ -52,11 +56,13 @@ public class BookingController {
     }
 
     @GetMapping("/{bookingId}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public Booking getById(@PathVariable UUID bookingId) {
         return bookingService.findById(bookingId);
     }
 
     @DeleteMapping("/{bookingId}")
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteBookingById(@PathVariable UUID bookingId) {
         bookingService.findByIdAndDelete(bookingId);

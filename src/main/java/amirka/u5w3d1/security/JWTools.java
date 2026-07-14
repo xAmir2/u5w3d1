@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Date;
+import java.util.UUID;
 
 @Component
 public class JWTools {
@@ -21,7 +22,8 @@ public class JWTools {
     public String generateToken(Employee employee) {
         return Jwts.builder()
                 .issuedAt(new Date(System.currentTimeMillis())) //Date of issue, must be in milliseconds
-                .expiration(new Date(System.currentTimeMillis() + 1000)) //Date of expiry, must be in milliseconds too
+                .expiration(new Date(
+                        System.currentTimeMillis() + 1000 * 60 * 60 * 24)) //Date of expiry, must be in milliseconds too
                 .subject(
                         String.valueOf(employee.getId())) //Token owner, we will use the ID and never use sensitive data
                 .signWith(Keys.hmacShaKeyFor(secret.getBytes())) //Token's signature with HMAC SHA to 
@@ -56,5 +58,14 @@ public class JWTools {
                     "There were issues with the toke, login again!"
             );
         }
+    }
+
+    public UUID extractIdFromToken(String token) {
+        return UUID.fromString(Jwts.parser()
+                .verifyWith(Keys.hmacShaKeyFor(secret.getBytes()))
+                .build()
+                .parseSignedClaims(token)
+                .getPayload()
+                .getSubject());
     }
 }

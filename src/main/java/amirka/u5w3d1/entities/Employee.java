@@ -1,14 +1,22 @@
 package amirka.u5w3d1.entities;
 
+import amirka.u5w3d1.enums.Role;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Getter;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
 @Table(name = "employees")
 @Getter
-public class Employee {
+@JsonIgnoreProperties({"password", "authorities", "enabled", "accountNonExpired", "credentialsNonExpired", "accountNonLocked"})
+public class Employee implements UserDetails {
     @Id
     @GeneratedValue
     private UUID id;
@@ -23,6 +31,8 @@ public class Employee {
     private String avatar;
     @Column(nullable = false)
     private String password;
+    @Enumerated(EnumType.STRING)
+    private Role role;
 
     public Employee(String username, String name, String surname, String email, String password) {
         this.username = username;
@@ -54,6 +64,19 @@ public class Employee {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority((this.role.name())));
     }
 
     @Override
